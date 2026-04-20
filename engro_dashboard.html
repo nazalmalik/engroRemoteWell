@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Engro Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --engro-green: #007A3D;
+    --engro-green-dark: #005C2D;
+    --engro-green-light: #00A651;
+    --engro-green-pale: #E8F5EE;
+    --engro-green-mid: #C3E6D4;
+    --engro-gold: #F4A900;
+    --engro-gold-light: #FFF3D1;
+    --surface: #FFFFFF;
+    --surface-2: #F7FAF8;
+    --surface-3: #EEF5F1;
+    --border: rgba(0, 122, 61, 0.12);
+    --border-strong: rgba(0, 122, 61, 0.25);
+    --text-primary: #0D1F16;
+    --text-secondary: #3D6B52;
+    --text-muted: #7AA58A;
+    --red: #E53935;
+    --red-light: #FFEBEE;
+    --orange: #FF8C00;
+    --orange-light: #FFF3E0;
+    --blue: #1565C0;
+    --blue-light: #E3F2FD;
+    --sidebar-w: 240px;
+    --header-h: 64px;
+  }
+
+  body {
+    font-family: 'Sora', sans-serif;
+    background: var(--surface-2);
+    color: var(--text-primary);
+    display: flex;
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--engro-green-dark);
+    min-height: 100vh;
+    position: fixed;
+    left: 0; top: 0;
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .logo-mark {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: var(--engro-gold);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: var(--engro-green-dark);
+    letter-spacing: -1px;
+  }
+
+  .logo-text { color: #fff; }
+  .logo-text strong { display: block; font-size: 16px; font-weight: 700; letter-spacing: 0.5px; }
+  .logo-text span { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 1.5px; text-transform: uppercase; }
+
+  .sidebar-section-label {
+    padding: 20px 20px 8px;
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    font-weight: 600;
+  }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 20px;
+    color: rgba(255,255,255,0.65);
+    font-size: 13.5px;
+    font-weight: 400;
+    cursor: pointer;
+    border-radius: 0;
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .nav-item:hover { color: #fff; background: rgba(255,255,255,0.07); }
+
+  .nav-item.active {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+    font-weight: 500;
+  }
+
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 8px; bottom: 8px;
+    width: 3px;
+    background: var(--engro-gold);
+    border-radius: 0 2px 2px 0;
+  }
+
+  .nav-icon {
+    width: 20px; height: 20px;
+    opacity: 0.8;
+    flex-shrink: 0;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .user-card {
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .user-avatar {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--engro-gold);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+    color: var(--engro-green-dark);
+    flex-shrink: 0;
+  }
+
+  .user-info strong { display: block; font-size: 12.5px; color: #fff; font-weight: 500; }
+  .user-info span { font-size: 11px; color: rgba(255,255,255,0.45); }
+
+  /* MAIN */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    height: var(--header-h);
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center;
+    padding: 0 28px;
+    gap: 16px;
+    position: sticky; top: 0;
+    z-index: 50;
+  }
+
+  .header-title h1 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .header-title span {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: block;
+    margin-top: 1px;
+  }
+
+  .search-bar {
+    flex: 1;
+    max-width: 360px;
+    margin-left: auto;
+    position: relative;
+  }
+
+  .search-bar input {
+    width: 100%;
+    height: 36px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 36px 0 14px;
+    font-size: 13px;
+    font-family: 'Sora', sans-serif;
+    color: var(--text-primary);
+    outline: none;
+    transition: border 0.15s;
+  }
+
+  .search-bar input:focus { border-color: var(--engro-green); }
+  .search-bar input::placeholder { color: var(--text-muted); }
+
+  .search-icon {
+    position: absolute; right: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+  }
+
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+
+  .btn-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .btn-icon:hover { background: var(--surface-2); border-color: var(--border-strong); }
+
+  .notif-dot {
+    position: absolute;
+    top: 7px; right: 7px;
+    width: 7px; height: 7px;
+    background: var(--red);
+    border-radius: 50%;
+    border: 1.5px solid var(--surface);
+  }
+
+  /* CONTENT */
+  .content { padding: 28px; display: flex; flex-direction: column; gap: 24px; }
+
+  /* STAT CARDS */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 18px 16px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+    cursor: default;
+  }
+
+  .stat-card:hover { box-shadow: 0 4px 20px rgba(0,122,61,0.08); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--engro-green);
+    border-radius: 12px 12px 0 0;
+  }
+
+  .stat-card.stopped::before { background: var(--red); }
+  .stat-card.trip::before { background: var(--orange); }
+  .stat-card.fault::before { background: var(--engro-gold); }
+  .stat-card.units::before { background: var(--blue); }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--engro-green);
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-card.stopped .stat-value { color: var(--red); }
+  .stat-card.trip .stat-value { color: var(--orange); }
+  .stat-card.fault .stat-value { color: var(--engro-gold); }
+  .stat-card.units .stat-value { color: var(--blue); font-size: 20px; }
+
+  .stat-sub {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 4px;
+  }
+
+  .stat-arrow {
+    display: inline-block;
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    background: var(--engro-green-pale);
+    color: var(--engro-green);
+    font-size: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-left: auto;
+  }
+
+  /* SECTIONS */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .section-title .count-badge {
+    background: var(--engro-green-pale);
+    color: var(--engro-green);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  .btn-primary {
+    background: var(--engro-green);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: background 0.15s;
+  }
+
+  .btn-primary:hover { background: var(--engro-green-dark); }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-strong);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: all 0.15s;
+  }
+
+  .btn-outline:hover { background: var(--surface-2); }
+
+  /* DEVICE GRID */
+  .device-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+
+  .device-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 14px 12px;
+    transition: all 0.15s;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .device-card:hover {
+    border-color: var(--engro-green);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(0,122,61,0.1);
+  }
+
+  .device-card.on-state { border-left: 3px solid var(--engro-green-light); }
+  .device-card.off-state { border-left: 3px solid var(--red); }
+  .device-card.standby-state { border-left: 3px solid var(--orange); }
+
+  .device-name-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .device-label { font-size: 10.5px; color: var(--text-muted); }
+  .device-name { font-size: 13.5px; font-weight: 700; color: var(--text-primary); }
+
+  .status-pill {
+    font-size: 11px; font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  .status-on { background: #E8F5EE; color: #007A3D; }
+  .status-off { background: #FFEBEE; color: #C62828; }
+  .status-standby { background: #FFF3E0; color: #E65100; }
+
+  .device-metrics { display: flex; flex-direction: column; gap: 5px; }
+  .device-metric { display: flex; justify-content: space-between; font-size: 12px; }
+  .device-metric-label { color: var(--text-muted); }
+  .device-metric-value { font-weight: 500; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+
+  /* CHARTS ROW */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+  }
+
+  .chart-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+
+  .chart-legend {
+    display: flex; gap: 16px; margin-bottom: 16px;
+  }
+
+  .legend-item {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-secondary);
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+  }
+
+  /* STATUS INDICATORS */
+  .electricity-list { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+
+  .elec-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+
+  .elec-icon {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    background: var(--engro-green-pale);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .elec-label { font-size: 12px; color: var(--text-muted); }
+  .elec-value { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 1px; }
+  .elec-badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+
+  /* HISTORY TABLE */
+  .table-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .table-header-bar {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .table-search {
+    flex: 1; max-width: 280px;
+    height: 32px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0 12px;
+    font-size: 12.5px;
+    font-family: 'Sora', sans-serif;
+    color: var(--text-primary);
+    outline: none;
+  }
+
+  .btn-export {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid;
+    cursor: pointer;
+    font-family: 'Sora', sans-serif;
+  }
+
+  .btn-excel { background: #E8F5EE; color: #007A3D; border-color: #C3E6D4; }
+  .btn-pdf { background: #FFEBEE; color: #C62828; border-color: #FFCDD2; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead tr { background: #0D1F16; }
+  thead th {
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+  }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:hover { background: var(--engro-green-pale); }
+  tbody tr:last-child { border-bottom: none; }
+
+  td { padding: 11px 16px; font-size: 13px; color: var(--text-primary); }
+
+  .status-off-tag { color: var(--red); font-weight: 600; }
+  .status-on-tag { color: var(--engro-green); font-weight: 600; }
+
+  .tag-chip {
+    background: var(--surface-3);
+    color: var(--text-secondary);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .pagination {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .page-info { font-size: 12px; color: var(--text-muted); }
+
+  .page-btns { display: flex; gap: 4px; }
+  .page-btn {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 12.5px;
+    font-family: 'Sora', sans-serif;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.1s;
+  }
+
+  .page-btn.active { background: var(--engro-green); color: #fff; border-color: var(--engro-green); }
+  .page-btn:hover:not(.active) { background: var(--surface-2); }
+
+  /* ERRORS SECTION */
+  .errors-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .error-section-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .error-section-title {
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .error-section-title.errors-title { color: var(--red); background: #FFF8F8; }
+  .error-section-title.warnings-title { color: var(--orange); background: #FFF8F0; }
+
+  .error-row {
+    display: flex; align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+    font-size: 12.5px;
+  }
+
+  .error-row:last-child { border-bottom: none; }
+  .error-name { flex: 1; color: var(--text-primary); }
+  .phase-indicators { display: flex; gap: 6px; }
+  .phase-ind { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--text-muted); }
+  .phase-dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-ok { background: #00C853; }
+  .dot-warn { background: #FFD600; }
+  .dot-err { background: var(--red); }
+
+  /* GAUGE WIDGETS */
+  .gauges-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+
+  .gauge-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+    transition: box-shadow 0.15s;
+  }
+
+  .gauge-card:hover { box-shadow: 0 4px 16px rgba(0,122,61,0.08); }
+
+  .gauge-label { font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 12px; }
+
+  .gauge-circle {
+    width: 80px; height: 80px;
+    margin: 0 auto 10px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+    position: relative;
+  }
+
+  .gauge-green { background: var(--engro-green-pale); border: 3px solid var(--engro-green-light); color: var(--engro-green); }
+  .gauge-red { background: #FFF0F0; border: 3px solid #FF8A80; color: var(--red); }
+  .gauge-gray { background: #F5F5F5; border: 3px solid #BDBDBD; color: #757575; }
+
+  .gauge-dot { width: 28px; height: 28px; border-radius: 50%; }
+  .gdot-green { background: var(--engro-green-light); }
+  .gdot-red { background: var(--red); }
+  .gdot-gray { background: #9E9E9E; }
+  .gdot-warn { background: var(--engro-gold); }
+
+  .gauge-val { font-size: 20px; font-weight: 700; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+  .gauge-unit { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .phase-values-row { display: flex; justify-content: center; gap: 20px; }
+  .phase-val-item { text-align: center; }
+  .phase-val-label { font-size: 10px; color: var(--text-muted); margin-bottom: 4px; }
+  .phase-val-dot { width: 8px; height: 8px; border-radius: 50%; background: #9E9E9E; margin: 0 auto 3px; }
+  .phase-val-num { font-size: 12px; font-weight: 600; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1400px) {
+    .device-grid { grid-template-columns: repeat(4, 1fr); }
+    .stat-row { grid-template-columns: repeat(3, 1fr); }
+    .gauges-row { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">E</div>
+      <div class="logo-text">
+        <strong>ENGRO</strong>
+        <span>IoT Control Hub</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar-section-label">Main</div>
+
+  <div class="nav-item active" onclick="showView('overview')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    Overview
+  </div>
+  <div class="nav-item" onclick="showView('device')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+    Device Dashboard
+  </div>
+
+  <div class="sidebar-section-label">Management</div>
+
+  <div class="nav-item" onclick="showView('schedules')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    Schedules
+  </div>
+  <div class="nav-item" onclick="showView('history')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    History
+  </div>
+  <div class="nav-item" onclick="showView('errors')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+    Errors
+  </div>
+
+  <div class="sidebar-section-label">Device</div>
+
+  <div class="nav-item" onclick="showView('details')">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Details
+  </div>
+  <div class="nav-item">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+    Settings
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-card">
+      <div class="user-avatar">ER</div>
+      <div class="user-info">
+        <strong>Engr. Rizwan</strong>
+        <span>Administrator</span>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-title">
+      <h1 id="page-title">System Overview</h1>
+      <span id="page-sub">Tube Well Network · Khairpur Division</span>
+    </div>
+    <div class="search-bar">
+      <input type="text" placeholder="Search devices, schedules...">
+      <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+    <div class="header-actions">
+      <div class="btn-icon" title="Notifications">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <span class="notif-dot"></span>
+      </div>
+      <div class="btn-icon" title="Reports">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+      </div>
+      <div class="btn-icon" title="Settings">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <!-- OVERVIEW VIEW -->
+    <div id="view-overview">
+      <!-- STAT CARDS -->
+      <div class="stat-row">
+        <div class="stat-card running">
+          <div class="stat-label">Total Devices</div>
+          <div class="stat-value">68</div>
+          <div class="stat-sub">
+            <span>Status: Running</span>
+            <span class="stat-arrow">↗</span>
+          </div>
+        </div>
+        <div class="stat-card stopped">
+          <div class="stat-label">Stopped</div>
+          <div class="stat-value">5</div>
+          <div class="stat-sub">Status: Normal</div>
+        </div>
+        <div class="stat-card trip">
+          <div class="stat-label">Trip</div>
+          <div class="stat-value">2</div>
+          <div class="stat-sub">Status: Normal</div>
+        </div>
+        <div class="stat-card fault">
+          <div class="stat-label">Fault</div>
+          <div class="stat-value">2</div>
+          <div class="stat-sub">Fault: Mechanical</div>
+        </div>
+        <div class="stat-card units">
+          <div class="stat-label">Total Units</div>
+          <div class="stat-value">20,65,545</div>
+          <div class="stat-sub">Status: Consumed</div>
+        </div>
+      </div>
+
+      <!-- DEVICES SECTION -->
+      <div>
+        <div class="section-header">
+          <div class="section-title">
+            Active Devices
+            <span class="count-badge">68</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn-outline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Filter
+            </button>
+            <button class="btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+              Export
+            </button>
+          </div>
+        </div>
+
+        <div class="device-grid">
+          <!-- Row 1 -->
+          <div class="device-card on-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">P-254 A</div></div>
+              <span class="status-pill status-on">ON</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card on-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">P-254 B</div></div>
+              <span class="status-pill status-on">ON</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card off-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">P-254 C</div></div>
+              <span class="status-pill status-off">OFF</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card on-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">P-254 D</div></div>
+              <span class="status-pill status-on">ON</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card off-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">P-254 E</div></div>
+              <span class="status-pill status-off">OFF</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <!-- Row 2 -->
+          <div class="device-card standby-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">#6</div></div>
+              <span class="status-pill status-standby">OFF</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card standby-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">#7</div></div>
+              <span class="status-pill status-standby">OFF</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card on-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">#8</div></div>
+              <span class="status-pill status-on">ON</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card standby-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">#9</div></div>
+              <span class="status-pill status-standby">OFF</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card on-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">#10</div></div>
+              <span class="status-pill status-on">ON</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <!-- Row 3 -->
+          <div class="device-card off-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">#11</div></div>
+              <span class="status-pill status-off">OFF</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card on-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">#12</div></div>
+              <span class="status-pill status-on">ON</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card off-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">#13</div></div>
+              <span class="status-pill status-off">OFF</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card on-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">#14</div></div>
+              <span class="status-pill status-on">ON</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+          <div class="device-card off-state" onclick="showView('device')">
+            <div class="device-name-row">
+              <div><div class="device-label">Device</div><div class="device-name">#15</div></div>
+              <span class="status-pill status-off">OFF</span>
+            </div>
+            <div class="device-metrics">
+              <div class="device-metric"><span class="device-metric-label">Hours</span><span class="device-metric-value">120</span></div>
+              <div class="device-metric"><span class="device-metric-label">Units</span><span class="device-metric-value">100 kWh</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEVICE DASHBOARD VIEW -->
+    <div id="view-device" style="display:none;">
+      <!-- GAUGES ROW -->
+      <div class="gauges-row">
+        <div class="gauge-card">
+          <div class="gauge-label">Running Status</div>
+          <div class="gauge-circle gauge-green"><div class="gauge-dot gdot-green"></div></div>
+          <div class="gauge-unit" style="color:var(--engro-green);font-weight:600;">RUNNING</div>
+        </div>
+        <div class="gauge-card">
+          <div class="gauge-label">Phase Error</div>
+          <div class="gauge-circle gauge-gray"><div class="gauge-dot gdot-gray"></div></div>
+          <div class="gauge-unit">No Error</div>
+        </div>
+        <div class="gauge-card">
+          <div class="gauge-label">Phase Values</div>
+          <div class="phase-values-row" style="margin-top:8px;">
+            <div class="phase-val-item">
+              <div class="phase-val-label">L1</div>
+              <div class="phase-val-dot"></div>
+              <div class="phase-val-num">0 V</div>
+            </div>
+            <div class="phase-val-item">
+              <div class="phase-val-label">L2</div>
+              <div class="phase-val-dot"></div>
+              <div class="phase-val-num">0 V</div>
+            </div>
+            <div class="phase-val-item">
+              <div class="phase-val-label">L3</div>
+              <div class="phase-val-dot"></div>
+              <div class="phase-val-num">0 V</div>
+            </div>
+          </div>
+        </div>
+        <div class="gauge-card">
+          <div class="gauge-label">Trip Status</div>
+          <div class="gauge-circle gauge-gray"><div class="gauge-dot gdot-gray"></div></div>
+          <div class="gauge-unit">No Trip</div>
+        </div>
+      </div>
+
+      <!-- POWER METRICS -->
+      <div class="gauges-row">
+        <div class="gauge-card" style="display:flex;align-items:center;gap:16px;text-align:left;">
+          <div style="width:64px;height:64px;border-radius:50%;background:var(--engro-green-pale);border:3px solid var(--engro-green);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--engro-green)" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div>
+            <div class="gauge-label">Current Status</div>
+            <div style="font-size:22px;font-weight:700;font-family:'JetBrains Mono';color:var(--engro-green);">0 <span style="font-size:13px;">kWh</span></div>
+          </div>
+        </div>
+        <div class="gauge-card">
+          <div class="gauge-label">Power</div>
+          <div class="gauge-circle gauge-red"><div class="gauge-dot gdot-red"></div></div>
+          <div class="gauge-val">0.42 <span style="font-size:13px;font-weight:400;">W</span></div>
+        </div>
+        <div class="gauge-card">
+          <div class="gauge-label">Current</div>
+          <div class="gauge-circle gauge-green"><div class="gauge-dot gdot-green"></div></div>
+          <div class="gauge-val">0.04 <span style="font-size:13px;font-weight:400;">A</span></div>
+        </div>
+        <div class="gauge-card">
+          <div class="gauge-label">Total Consumed Units</div>
+          <div style="font-size:18px;font-weight:700;font-family:'JetBrains Mono';color:var(--blue);margin:12px 0 4px;">993,017,436</div>
+          <div class="gauge-unit">.48 kWh total</div>
+        </div>
+      </div>
+
+      <!-- CHART + ELECTRICITY -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="section-header" style="margin-bottom:8px;">
+            <div class="section-title">Consumption</div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-outline" style="font-size:11px;padding:4px 10px;">Week</button>
+              <button class="btn-primary" style="font-size:11px;padding:4px 10px;background:var(--engro-green);">Month</button>
+            </div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#007A3D;"></div>Energy (kWh)</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#F4A900;"></div>Motor Runtime (hrs)</div>
+          </div>
+          <div style="position:relative;height:240px;">
+            <canvas id="consumptionChart" role="img" aria-label="Weekly consumption chart showing energy and motor runtime">Weekly energy and motor runtime data.</canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="section-title" style="margin-bottom:12px;">Electricity Info</div>
+          <div class="electricity-list">
+            <div class="elec-row">
+              <div class="elec-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--engro-green)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+              <div><div class="elec-label">Run Time Today</div><div class="elec-value">0.00 Hours</div></div>
+              <span class="elec-badge" style="background:var(--engro-green-pale);color:var(--engro-green);">Active</span>
+            </div>
+            <div class="elec-row">
+              <div class="elec-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--engro-green)" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 12l-6-6-4 4-3-3"/></svg></div>
+              <div><div class="elec-label">Last Peak Usage</div><div class="elec-value">Never</div></div>
+              <span class="elec-badge" style="background:#F5F5F5;color:#757575;">—</span>
+            </div>
+            <div class="elec-row">
+              <div class="elec-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--engro-green)" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+              <div><div class="elec-label">Total Run Hours</div><div class="elec-value">0 Hours</div></div>
+              <span class="elec-badge" style="background:var(--engro-green-pale);color:var(--engro-green);">OK</span>
+            </div>
+            <div class="elec-row">
+              <div class="elec-icon" style="background:var(--orange-light);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg></div>
+              <div><div class="elec-label">Last Maintenance</div><div class="elec-value">Never</div></div>
+              <span class="elec-badge" style="background:var(--orange-light);color:var(--orange);">Check</span>
+            </div>
+            <div class="elec-row">
+              <div class="elec-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--engro-green)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+              <div><div class="elec-label">Last Sync</div><div class="elec-value" style="font-size:12px;">04 May 2023, 03:52 PM</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCHEDULES VIEW -->
+    <div id="view-schedules" style="display:none;">
+      <div class="table-card">
+        <div class="table-header-bar">
+          <div class="section-title">All Schedules</div>
+          <div style="margin-left:auto;">
+            <button class="btn-primary">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+              Add New Schedule
+            </button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Schedule</th>
+              <th>Status</th>
+              <th>Tag Phone</th>
+              <th>Tag</th>
+              <th>Start Time</th>
+              <th>End Time</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">No records found. Add a new schedule to get started.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- HISTORY VIEW -->
+    <div id="view-history" style="display:none;">
+      <div class="table-card">
+        <div class="table-header-bar">
+          <div class="section-title">History Details</div>
+          <div style="display:flex;gap:8px;margin-left:auto;align-items:center;">
+            <button class="btn-export btn-excel">Copy</button>
+            <button class="btn-export btn-excel">Generate Excel</button>
+            <button class="btn-export btn-pdf">Generate PDF</button>
+            <input class="table-search" type="text" placeholder="Search...">
+            <select style="height:32px;border:1px solid var(--border);border-radius:6px;padding:0 8px;font-size:12px;font-family:'Sora';color:var(--text-secondary);background:var(--surface-2);">
+              <option>All</option><option>Motor ON</option><option>Motor OFF</option>
+            </select>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Tag Name</th>
+              <th>Tag Phone</th>
+              <th>Run Time (Min)</th>
+              <th>Energy</th>
+              <th>Date – Time</th>
+              <th>Action By</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="status-off-tag">Motor Status: OFF</span></td><td><span class="tag-chip">NO-TAG</span></td><td><span class="tag-chip">NO-TAG</span></td><td>0</td><td>0</td><td>02-05-2023 12:39 PM</td><td>Unknown 44</td></tr>
+            <tr><td><span class="status-off-tag">Motor Status: OFF</span></td><td><span class="tag-chip">NO-TAG</span></td><td><span class="tag-chip">NO-TAG</span></td><td>0</td><td>0</td><td>02-05-2023 12:39 PM</td><td>Trip error Removed</td></tr>
+            <tr><td><span class="status-off-tag">Motor Status: OFF</span></td><td><span class="tag-chip">NO-TAG</span></td><td><span class="tag-chip">NO-TAG</span></td><td>0</td><td>0.34</td><td>02-05-2023 12:39 PM</td><td>Electricity Supply ON</td></tr>
+            <tr><td><span class="status-off-tag">Motor Status: OFF</span></td><td><span class="tag-chip">NO-TAG</span></td><td><span class="tag-chip">NO-TAG</span></td><td>0</td><td>0</td><td>02-05-2023 12:39 PM</td><td>Turned OFF Manually</td></tr>
+            <tr><td><span class="status-off-tag">Motor Status: OFF</span></td><td><span class="tag-chip">NO-TAG</span></td><td><span class="tag-chip">NO-TAG</span></td><td>0</td><td>0.34</td><td>02-05-2023 12:40 PM</td><td>Unknown 42</td></tr>
+            <tr><td><span class="status-off-tag">Motor Status: OFF</span></td><td><span class="tag-chip">NO-TAG</span></td><td><span class="tag-chip">NO-TAG</span></td><td>0</td><td>0.34</td><td>02-05-2023 12:40 PM</td><td>Unknown 42</td></tr>
+            <tr><td><span class="status-off-tag">Motor Status: OFF</span></td><td><span class="tag-chip">NO-TAG</span></td><td><span class="tag-chip">NO-TAG</span></td><td>0</td><td>0</td><td>02-05-2023 12:40 PM</td><td>Trip error Occurred</td></tr>
+            <tr><td><span class="status-off-tag">Motor Status: OFF</span></td><td><span class="tag-chip">NO-TAG</span></td><td><span class="tag-chip">NO-TAG</span></td><td>0</td><td>0.34</td><td>02-05-2023 12:41 PM</td><td>Unknown 42</td></tr>
+            <tr><td><span class="status-off-tag">Motor Status: OFF</span></td><td><span class="tag-chip">NO-TAG</span></td><td><span class="tag-chip">NO-TAG</span></td><td>0</td><td>0.34</td><td>02-05-2023 12:41 PM</td><td>Unknown 42</td></tr>
+            <tr><td><span class="status-off-tag">Motor Status: OFF</span></td><td><span class="tag-chip">NO-TAG</span></td><td><span class="tag-chip">NO-TAG</span></td><td>0</td><td>0.34</td><td>02-05-2023 12:41 PM</td><td>Unknown 42</td></tr>
+          </tbody>
+        </table>
+        <div class="pagination">
+          <span class="page-info">Showing 1 to 10 of 100 entries</span>
+          <div class="page-btns">
+            <button class="page-btn">‹</button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn">3</button>
+            <button class="page-btn">4</button>
+            <button class="page-btn">5</button>
+            <button class="page-btn">…</button>
+            <button class="page-btn">10</button>
+            <button class="page-btn">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERRORS VIEW -->
+    <div id="view-errors" style="display:none;">
+      <div class="errors-grid">
+        <div class="error-section-card">
+          <div class="error-section-title errors-title">Errors</div>
+          <div class="error-row">
+            <span class="error-name">Phase lost on</span>
+            <div class="phase-indicators">
+              <div class="phase-ind"><div class="phase-dot dot-ok"></div>L1</div>
+              <div class="phase-ind"><div class="phase-dot dot-ok"></div>L2</div>
+              <div class="phase-ind"><div class="phase-dot dot-ok"></div>L3</div>
+            </div>
+          </div>
+          <div class="error-row">
+            <span class="error-name">Voltage sag on</span>
+            <div class="phase-indicators">
+              <div class="phase-ind"><div class="phase-dot dot-ok"></div>L1</div>
+              <div class="phase-ind"><div class="phase-dot dot-ok"></div>L2</div>
+              <div class="phase-ind"><div class="phase-dot dot-ok"></div>L3</div>
+            </div>
+          </div>
+          <div class="error-row">
+            <span class="error-name">Phase sequence</span>
+            <div class="phase-indicators">
+              <div class="phase-ind"><div class="phase-dot dot-ok"></div>L3</div>
+            </div>
+          </div>
+          <div class="error-row">
+            <span class="error-name">Current sequence</span>
+            <div class="phase-indicators">
+              <div class="phase-ind"><div class="phase-dot dot-ok"></div>L3</div>
+            </div>
+          </div>
+        </div>
+        <div class="error-section-card">
+          <div class="error-section-title warnings-title">Warnings</div>
+          <div class="error-row">
+            <span class="error-name">Total KW directions reversed</span>
+            <div class="phase-indicators"><div class="phase-ind"><div class="phase-dot dot-ok"></div>L3</div></div>
+          </div>
+          <div class="error-row">
+            <span class="error-name">Total Kvar directions reversed</span>
+            <div class="phase-indicators"><div class="phase-ind"><div class="phase-dot dot-ok"></div>L3</div></div>
+          </div>
+          <div class="error-row">
+            <span class="error-name">CF1 direction is reversed</span>
+            <div class="phase-indicators"><div class="phase-ind"><div class="phase-dot dot-ok"></div>L3</div></div>
+          </div>
+          <div class="error-row">
+            <span class="error-name">CF2 direction is reversed</span>
+            <div class="phase-indicators"><div class="phase-ind"><div class="phase-dot dot-warn"></div>L3</div></div>
+          </div>
+          <div class="error-row">
+            <span class="error-name">Neutral current exceeds threshold</span>
+            <div class="phase-indicators"><div class="phase-ind"><div class="phase-dot dot-ok"></div>L3</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DETAILS VIEW -->
+    <div id="view-details" style="display:none;">
+      <div style="font-size:17px;font-weight:600;color:var(--text-primary);margin-bottom:16px;">Tube Well No: <span style="color:var(--engro-green);">P-254 D</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="chart-card">
+          <div class="section-title" style="color:var(--engro-green);margin-bottom:16px;">Mechanical Specification</div>
+          <div class="device-metrics" style="gap:12px;">
+            <div class="device-metric" style="padding:10px 0;border-bottom:1px solid var(--border);">
+              <span class="device-metric-label" style="font-size:13px;">Pump Type</span>
+              <span class="device-metric-value" style="font-size:13px;font-family:'Sora';">Centrifugal</span>
+            </div>
+            <div class="device-metric" style="padding:10px 0;border-bottom:1px solid var(--border);">
+              <span class="device-metric-label" style="font-size:13px;">Head Size</span>
+              <span class="device-metric-value" style="font-size:13px;font-family:'JetBrains Mono';">8.4 ~ 249m</span>
+            </div>
+            <div class="device-metric" style="padding:10px 0;">
+              <span class="device-metric-label" style="font-size:13px;">Flow Rate</span>
+              <span class="device-metric-value" style="font-size:13px;font-family:'JetBrains Mono';">0 ~ 2.8 m³/h</span>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="section-title" style="color:var(--engro-green);margin-bottom:16px;">Status</div>
+          <div class="device-metrics" style="gap:12px;">
+            <div class="device-metric" style="padding:10px 0;border-bottom:1px solid var(--border);">
+              <span class="device-metric-label" style="font-size:13px;">Status</span>
+              <span style="font-size:14px;font-weight:700;color:var(--engro-green);">ON</span>
+            </div>
+            <div class="device-metric" style="padding:10px 0;border-bottom:1px solid var(--border);">
+              <span class="device-metric-label" style="font-size:13px;">Running Time</span>
+              <span class="device-metric-value" style="font-size:13px;font-family:'JetBrains Mono';">4 hours</span>
+            </div>
+            <div class="device-metric" style="padding:10px 0;">
+              <span class="device-metric-label" style="font-size:13px;">Total Running Time</span>
+              <span class="device-metric-value" style="font-size:13px;font-family:'JetBrains Mono';">1,024 hours</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+        <div class="chart-card">
+          <div class="section-title" style="color:var(--engro-green);margin-bottom:16px;">Electrical Specification</div>
+          <div class="device-metrics" style="gap:8px;">
+            <div class="device-metric" style="padding:7px 0;border-bottom:1px solid var(--border);"><span class="device-metric-label">Transformer Rating</span><span style="font-size:12px;font-weight:600;color:var(--engro-green);font-family:'JetBrains Mono';">60 kVA</span></div>
+            <div class="device-metric" style="padding:7px 0;border-bottom:1px solid var(--border);"><span class="device-metric-label">Motor Rating</span><span style="font-size:12px;font-weight:600;color:var(--engro-green);font-family:'JetBrains Mono';">50 kVA</span></div>
+            <div class="device-metric" style="padding:7px 0;border-bottom:1px solid var(--border);"><span class="device-metric-label">Motor Current</span><span style="font-size:12px;font-weight:600;color:var(--engro-green);font-family:'JetBrains Mono';">135 Amp</span></div>
+            <div class="device-metric" style="padding:7px 0;border-bottom:1px solid var(--border);"><span class="device-metric-label">Motor RPM</span><span style="font-size:12px;font-weight:600;color:var(--engro-green);font-family:'JetBrains Mono';">1450</span></div>
+            <div class="device-metric" style="padding:7px 0;"><span class="device-metric-label">Motor Voltage</span><span style="font-size:12px;font-weight:600;color:var(--engro-green);font-family:'JetBrains Mono';">415 V</span></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="section-title" style="color:var(--engro-green);margin-bottom:16px;">Maintenance & Installation</div>
+          <div class="device-metrics" style="gap:8px;">
+            <div class="device-metric" style="padding:7px 0;border-bottom:1px solid var(--border);"><span class="device-metric-label">Installation Date</span><span style="font-size:12px;font-weight:600;font-family:'JetBrains Mono';">04-03-2023</span></div>
+            <div class="device-metric" style="padding:7px 0;border-bottom:1px solid var(--border);"><span class="device-metric-label">Last Maintenance</span><span style="font-size:12px;font-weight:600;font-family:'JetBrains Mono';">05-03-2023</span></div>
+            <div class="device-metric" style="padding:7px 0;"><span class="device-metric-label">Due Maintenance</span><span style="font-size:12px;font-weight:600;color:var(--orange);font-family:'JetBrains Mono';">04-04-2023</span></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="section-title" style="color:var(--engro-green);margin-bottom:16px;">Well Water Analysis</div>
+          <div class="device-metrics" style="gap:8px;">
+            <div class="device-metric" style="padding:7px 0;border-bottom:1px solid var(--border);"><span class="device-metric-label">Cond (µs/cm)</span><span style="font-size:12px;font-weight:600;color:var(--engro-green);font-family:'JetBrains Mono';">60 kVA</span></div>
+            <div class="device-metric" style="padding:7px 0;border-bottom:1px solid var(--border);"><span class="device-metric-label">Ca (ppm)</span><span style="font-size:12px;font-weight:600;color:var(--engro-green);font-family:'JetBrains Mono';">50 kVA</span></div>
+            <div class="device-metric" style="padding:7px 0;border-bottom:1px solid var(--border);"><span class="device-metric-label">Mg (ppm)</span><span style="font-size:12px;font-weight:600;color:var(--engro-green);font-family:'JetBrains Mono';">135 Amp</span></div>
+            <div class="device-metric" style="padding:7px 0;border-bottom:1px solid var(--border);"><span class="device-metric-label">So (ppm)</span><span style="font-size:12px;font-weight:600;color:var(--engro-green);font-family:'JetBrains Mono';">1450</span></div>
+            <div class="device-metric" style="padding:7px 0;"><span class="device-metric-label">Cl (ppm)</span><span style="font-size:12px;font-weight:600;color:var(--engro-green);font-family:'JetBrains Mono';">415 V</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+const views = ['overview','device','schedules','history','errors','details'];
+const titles = {
+  overview: ['System Overview','Tube Well Network · Khairpur Division'],
+  device: ['Device Dashboard · P-254 D','Real-time monitoring & consumption'],
+  schedules: ['Schedules','Manage pump scheduling'],
+  history: ['History Details','Operational log & event records'],
+  errors: ['Errors & Warnings','Fault monitoring & diagnostics'],
+  details: ['Device Details · P-254 D','Technical specifications & analysis']
+};
+
+function showView(v) {
+  views.forEach(id => {
+    document.getElementById('view-'+id).style.display = id===v ? '' : 'none';
+  });
+  document.getElementById('page-title').textContent = titles[v][0];
+  document.getElementById('page-sub').textContent = titles[v][1];
+  document.querySelectorAll('.nav-item').forEach((el,i) => el.classList.remove('active'));
+  const navMap = {overview:0,device:1,schedules:2,history:3,errors:4,details:5};
+  if(navMap[v]!==undefined) document.querySelectorAll('.nav-item')[navMap[v]].classList.add('active');
+  if(v==='device') initChart();
+}
+
+let chartInit = false;
+function initChart() {
+  if(chartInit) return;
+  chartInit = true;
+  new Chart(document.getElementById('consumptionChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Sat','Sun','Mon','Tue','Wed','Thu','Fri'],
+      datasets: [
+        { label: 'Energy (kWh)', data: [0,0,120,390,210,150,90], backgroundColor: 'rgba(0,122,61,0.15)', borderColor: '#007A3D', borderWidth: 2, borderRadius: 4, yAxisID: 'y' },
+        { label: 'Motor Runtime', data: [0,0,15,48,32,28,12], type: 'line', borderColor: '#F4A900', backgroundColor: 'rgba(244,169,0,0.08)', borderWidth: 2.5, pointBackgroundColor: '#F4A900', pointRadius: 4, tension: 0.4, yAxisID: 'y1' }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11, family: 'Sora' }, color: '#7AA58A' } },
+        y: { position: 'left', grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11, family: 'Sora' }, color: '#7AA58A' } },
+        y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { font: { size: 11, family: 'Sora' }, color: '#F4A900' } }
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
